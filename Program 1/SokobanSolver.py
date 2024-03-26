@@ -1,18 +1,28 @@
+import tkinter as tk
+from tkinter import messagebox, Canvas
 from queue import PriorityQueue
 import copy
+import os
 import time
 
+# gui global variables
+gui_boxRobot = []
+gui_wallsStorageSpaces = []
+gui_possibleMoves = {'U': [-1, 0], 'R': [0, 1], 'D': [1, 0], 'L': [0, -1]}
+gui_maxRowLength = 0
+gui_lines = 0
+gui_tile_size = 50  # Size of each square tile
 board=[]
 maxLength=0
 
 boxRobot=[]
 wallsStorageSpaces=[]
 possibleMoves = {'U':[-1,0], 'R':[0,1],'D':[1,0],'L':[0,-1]}
+solutionMoveSet=[]
 
 maxRowLength = 0	
 lines=0
-print("Enter input file with Sokoban board: ")
-input_file = input()
+input_file = 'input.txt'
 
 try:
 	with open(input_file, 'r') as file:
@@ -79,7 +89,7 @@ try:
 
 		print("Solving using A star with Manhattan as heuristic\n")
 
-		movesList=[]
+		movesList = []
 		visitedMoves=[]
 
 		queue = PriorityQueue()
@@ -131,6 +141,7 @@ try:
 							movesTillNowCopy.append(key)
 							if matches == 0:
 								completed = 1
+								solutionMoveSet = movesTillNowCopy
 								print(movesTillNowCopy)
 							else:
 								queue.put((manhattan(curPositionCopy)+stepsTillNow,[curPositionCopy,movesTillNowCopy]))
@@ -156,3 +167,120 @@ except FileNotFoundError:
 except IOError:
     print(f"Error reading from file '{input_file}'.")
 
+
+
+# Initialize the main Tkinter window
+root = tk.Tk()
+root.title("Sokoban Solver")
+canvas = Canvas(root)
+canvas.pack()
+
+def read_board_from_file(filename):
+    global gui_lines, gui_maxRowLength, gui_board, gui_boxRobot, gui_wallsStorageSpaces
+    gui_lines, gui_maxRowLength = 0, 0
+    gui_board, gui_boxRobot, gui_wallsStorageSpaces = [], [], []
+    with open(filename, 'r') as file:
+        for line in file:
+            line = line.rstrip()
+            if line:
+                gui_lines += 1
+                gui_board.append(line)
+                gui_maxRowLength = max(gui_maxRowLength, len(line))
+                
+def draw_board():
+    canvas.delete('all')  
+    for y, row in enumerate(gui_boxRobot):
+        for x, cell in enumerate(row):
+            color = 'white'  
+            
+            if cell == 'B' and gui_wallsStorageSpaces[y][x] == 'S':
+                color = 'purple'  
+            elif cell == 'B':
+                color = 'blue' 
+            elif cell == 'R':
+                color = 'red' 
+            elif gui_wallsStorageSpaces[y][x] == 'S':
+                color = 'green'  
+            elif gui_wallsStorageSpaces[y][x] == 'O':
+                color = 'grey'  
+            
+            canvas.create_rectangle(x * gui_tile_size, y * gui_tile_size, (x + 1) * gui_tile_size, (y + 1) * gui_tile_size, fill=color)
+    
+    canvas.pack()
+    root.update_idletasks()  
+
+def initialize_board_state():
+    global gui_boxRobot, gui_wallsStorageSpaces
+    for i in range(gui_lines):
+        gui_boxRobot.append([' ']*gui_maxRowLength)
+        gui_wallsStorageSpaces.append([' ']*gui_maxRowLength)
+
+    for y, row in enumerate(gui_board):
+        for x, char in enumerate(row):
+            if char in 'BR':
+                gui_boxRobot[y][x] = char
+                gui_wallsStorageSpaces[y][x] = ' '
+            elif char in 'SO':
+                gui_wallsStorageSpaces[y][x] = char
+                gui_boxRobot[y][x] = ' '
+            elif char == '*':
+                gui_boxRobot[y][x] = 'B'
+                gui_wallsStorageSpaces[y][x] = 'S'
+            elif char == '.':
+                gui_boxRobot[y][x] = 'R'
+                gui_wallsStorageSpaces[y][x] = 'S'
+
+def load_and_draw_board():
+    filename = file_entry.get()
+    if not os.path.isfile(filename):
+        messagebox.showerror("Error", f"File '{filename}' not found.")
+        return
+    read_board_from_file(filename)
+    initialize_board_state()
+    
+    canvas.config(width=gui_maxRowLength*gui_tile_size, height=gui_lines*gui_tile_size)
+    draw_board()
+    file_label.pack_forget()
+    file_entry.pack_forget()
+    submit_button.config(text="Solve", command=solve_puzzle)
+    submit_button.pack(pady=10)
+
+
+def apply_moves(moves):
+    global gui_boxRobot, gui_wallsStorageSpaces
+    robot_pos = next((i, j) for i, row in enumerate(gui_boxRobot) for j, val in enumerate(row) if val == 'R')
+    
+    for move in moves:
+        dx, dy = gui_possibleMoves[move]
+        next_pos = (robot_pos[0] + dx, robot_pos[1] + dy)
+
+        if gui_boxRobot[next_pos[0]][next_pos[1]] == 'B':
+            box_new_pos = (next_pos[0] + dx, next_pos[1] + dy)
+            gui_boxRobot[box_new_pos[0]][box_new_pos[1]] = 'B'  
+            gui_boxRobot[next_pos[0]][next_pos[1]] = 'R'  
+        else:
+            gui_boxRobot[next_pos[0]][next_pos[1]] = 'R' 
+        
+        gui_boxRobot[robot_pos[0]][robot_pos[1]] = ' '  
+        robot_pos = next_pos 
+
+        draw_board()  
+        root.update_idletasks()  
+        time.sleep(0.5) 
+
+
+def solve_puzzle():
+    apply_moves(solutionMoveSet)
+    messagebox.showinfo("Solved", "Puzzle solved with moves: " + ' '.join(solutionMoveSet))
+
+# Entry widget for filename
+file_label = tk.Label(root, text="Enter the filename of the Sokoban board:")
+file_label.pack()
+file_entry = tk.Entry(root, width=50)
+file_entry.pack()
+
+# Submit button 
+submit_button = tk.Button(root, text="Load Board", command=load_and_draw_board)
+submit_button.pack(pady=10)
+
+root.mainloop()

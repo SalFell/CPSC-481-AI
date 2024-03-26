@@ -15,6 +15,7 @@ gui_tile_size = 50  # Size of each square tile
 board=[]
 maxLength=0
 
+# global variables for game logic
 boxRobot=[]
 wallsStorageSpaces=[]
 possibleMoves = {'U':[-1,0], 'R':[0,1],'D':[1,0],'L':[0,-1]}
@@ -24,6 +25,7 @@ maxRowLength = 0
 lines=0
 input_file = 'input.txt'
 
+# Try to open and read from the input file
 try:
 	with open(input_file, 'r') as file:
         # read the file line by line
@@ -34,8 +36,11 @@ try:
 			if len(line)>maxRowLength:
 				maxRowLength=len(line)
         
+		# Start time counter for performance checking
 		time_start = time.perf_counter()
-		
+
+		# Initialize the board and perform necessary transformations
+    	# based on the input read from the file
 		for i in range(0,lines):
 			boxRobot.append([])
 			wallsStorageSpaces.append([])
@@ -66,13 +71,14 @@ try:
 					boxRobot[i][j] = 'R'
 					wallsStorageSpaces[i][j] = 'S'
 
+		# Extract storage locations from the board
 		storages = []
 		for i in range(0,lines):
 			for j in range(0,maxRowLength):
 				if wallsStorageSpaces[i][j]=='S':
 					storages.append([i,j])
 
-		# print storages
+		# Manhattan distance heuristic function for A* algorithm
 		def manhattan(state):
 			distance = 0
 			for i in range(0,lines):
@@ -87,25 +93,27 @@ try:
 						distance+=temp
 			return distance
 
+		# Solve the puzzle using A* algorithm with Manhattan heuristic
 		print("Solving using A star with Manhattan as heuristic\n")
 
 		movesList = []
 		visitedMoves=[]
 
 		queue = PriorityQueue()
-		source = [boxRobot,movesList]
+		source = [boxRobot,movesList] # initial state of the puzzle (position of boxes and robot) along with the moves taken so far (initially empty).
 		if boxRobot not in visitedMoves:
 			visitedMoves.append(boxRobot)
-		queue.put((manhattan(boxRobot),source))
+		queue.put((manhattan(boxRobot),source)) # priority is determined by the Manhattan distance heuristic value of the current state (boxRobot) plus the source (initial movesList). This is the starting point of the A* algorithm.
 		robot_x = -1
 		robot_y = -1
 		completed = 0
 
 		while not queue.empty() and completed==0:
-			temp = queue.get()
+			temp = queue.get() # gets the next item with the highest priority from the queue
 			curPosition = temp[1][0]
 			movesTillNow = temp[1][1]
 			stepsTillNow= len(movesTillNow)
+			# This loop iterates over each cell in the grid to find the position of the robot
 			for i in range(0,lines):
 				for j in range(0,maxRowLength):
 					if curPosition[i][j]=='R':
@@ -115,19 +123,23 @@ try:
 				else:
 					continue
 				break
-
+			
+			# For each possible move (key) in possibleMoves, calculate the new position of the robot (robotNew_x, robotNew_y)
 			for key in possibleMoves:
 				robotNew_x = robot_x+possibleMoves[key][0]
 				robotNew_y = robot_y+possibleMoves[key][1] 
+				# create a deep copy of curPosition and movesTillNow to simulate making the move and check if the move is valid.
 				curPositionCopy = copy.deepcopy(curPosition)
 				movesTillNowCopy = copy.deepcopy(movesTillNow)
 
+				# If the move involves pushing a box ('B'), check if the box can be pushed to a valid position (not obstructed by another box or wall)
 				if curPositionCopy[robotNew_x][robotNew_y] == 'B':
 					boxNew_x = robotNew_x + possibleMoves[key][0]
 					boxNew_y = robotNew_y + possibleMoves[key][1]
 					if curPositionCopy[boxNew_x][boxNew_y]=='B' or wallsStorageSpaces[boxNew_x][boxNew_y]=='O':
 						continue
 					else:
+						# If the move is valid, update the positions in the copied state (curPositionCopy), append the move to movesTillNowCopy, and check if the puzzle is completed (all boxes are at storage locations)
 						curPositionCopy[boxNew_x][boxNew_y]='B'
 						curPositionCopy[robotNew_x][robotNew_y] = 'R'
 						curPositionCopy[robot_x][robot_y] = ' '
@@ -139,11 +151,13 @@ try:
 										if curPositionCopy[k][l]!='B':
 											matches=1
 							movesTillNowCopy.append(key)
+							# If the puzzle is completed, set completed to 1, store the solution move set (solutionMoveSet), and print the moves
 							if matches == 0:
 								completed = 1
 								solutionMoveSet = movesTillNowCopy
 								print(movesTillNowCopy)
 							else:
+								# If the puzzle is not completed, calculate the priority for the new state and add it to the queue if it's not already visited
 								queue.put((manhattan(curPositionCopy)+stepsTillNow,[curPositionCopy,movesTillNowCopy]))
 								visitedMoves.append(curPositionCopy)
 				else:
@@ -160,6 +174,7 @@ try:
 		if completed==0:
 			print("Can't make it")
 
+		# End time counter for performance checking
 		time_end = time.perf_counter()
 		print("Run time: "+str(time_end - time_start))
 except FileNotFoundError:

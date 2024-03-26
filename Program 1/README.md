@@ -5,3 +5,5 @@ O - Obstacle
 S - Storage
 B - Block
 R - Robot
+
+The space complexity of the code can be roughly estimated as O(m * n) due to the input file data, where m is the number of lines in the input file and n is the average number of characters per line.

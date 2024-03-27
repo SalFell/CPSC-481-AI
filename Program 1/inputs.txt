@@ -1,4 +1,4 @@
-I have run the code for all the following and some of them are not giving any results even after runnning for a lot of time.
+We have run the code for all the following and some of them are not giving any results even after runnning for a long time.
 
 
 ### Not getting solution for these
@@ -19,7 +19,7 @@ OOOOO
 OOOOOOO
 O     O
 O     O
-OS O  O      --- Able to get DFS, Greedy for both heuristics, but not the remaining
+OS O  O
 OS BB O
 OSBB  O
 OSO  RO
@@ -30,7 +30,7 @@ OOOOOOOOO
 OS  S  SO
 OO BBB OO
  OO   OO
-  OOROO      ---- Unable to get result from any methods
+  OOROO
  OO   OO
 OO BBB OO
 OS  S  SO
@@ -50,7 +50,7 @@ OOO   OOO
 
 
 
-############### All the methods are working for the below ones
+############### Working for the below
 
 OOOOOOOO
 O   OR O
@@ -130,9 +130,6 @@ OOO O OOO
   OOOOO
 
 
-Big DFS and small BFS for above
-
-
 OOO
 O.OOO
 OBOSOO
@@ -148,8 +145,6 @@ O       O
 OSBSBSB O
 OO     OO
  OOOOOOO
-
-small BFS and big DFS for above one,
 
 
 
@@ -168,7 +163,7 @@ OSBBB O
 OOSS  O
  OOOOOO
 
-Taking time but small solution working
+################ Taking time but small solution working
 
 
 OOOOOOOO
@@ -197,8 +192,6 @@ O    OO
 OOO  O
   OOOO
 
-above one: BFS small and fast , DFS big and slow
-
 
 OOOOOOO
 O   SSO
@@ -225,7 +218,7 @@ O  SSS  O
 OOOOO   O
     OOOOO
   
-*** Testcases for Greedy and A*
+*** Testcases for A*
 
 OOOOOOOOO
 O       O

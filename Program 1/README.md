@@ -20,15 +20,15 @@ The program currently uses input.txt as the input file to read the game board. T
 
 Please use the following command in the terminal to run the program.
 
-'''
+```
 python SokobanSolver.py
-'''
+```
 
 or
 
-'''
+```
 python3 SokobanSolver.py
-'''
+```
 
 Once the game board has been solved by the algorithm, a GUI window will pop up prompting you to input the file that holds the game board so you may see it be solved with the solution previously provided by the algorithm. Please use input.txt for this input. Use of a different game board for the GUI will result in a misrepresentation of the solution, i.e. the algorithm's solution may show the Player/Bot performing unwanted behavior like moving through boxes and obstacles. 
 

@@ -4,15 +4,18 @@ Sokoban is a puzzle game where the player has to move boxes into storage locatio
 
 * O - Obstacle
 * S - Storage
-* B - Block
+* B - Box
 * R - Robot
+* "*" - Box on strage space
+* "." - Robot on storage space
 
 ## GUI Format
 
 * Grey - Obstacle
 * Green - Storage
-* Blue - Block
+* Blue - Box
 * Red - Robot
+* Purple - Box on storage space
 
 ## Running the program
 
